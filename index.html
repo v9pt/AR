@@ -86,6 +86,8 @@
     <div class="slider-container">
         <label for="zoom-slider">Zoom Level</label>
         <input type="range" id="zoom-slider" min="1" max="10" step="0.1" value="5">
+        <label for="rotation-slider">Rotation</label>
+        <input type="range" id="rotation-slider" min="0" max="360" step="1" value="0">
     </div>
     <a-scene>
         <a-camera id="camera" position="0 1.6 5" look-controls="pointerLockEnabled: true"></a-camera>
@@ -247,6 +249,13 @@
             const zoomLevel = event.target.value;
             const camera = document.querySelector('#camera');
             camera.setAttribute('position', `0 1.6 ${5 - zoomLevel}`);
+        });
+
+        // Add rotation functionality
+        document.getElementById('rotation-slider').addEventListener('input', (event) => {
+            const rotationAngle = event.target.value;
+            const chartEntity = document.querySelector('#chart');
+            chartEntity.setAttribute('rotation', `0 ${rotationAngle} 0`);
         });
     </script>
 </body>
