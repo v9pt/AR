@@ -167,14 +167,18 @@
             }
 
             if (type === 'bar') {
+                const barWidth = 0.5;
+                const barDepth = 0.2;
+                const maxHeight = 2;
+
                 values.forEach((value, index) => {
-                    const barHeight = (value / 100) * maxHeight;
+                    const barHeight = Math.min((value / Math.max(...values)) * maxHeight, maxHeight);
 
                     // Create the main bar
                     const geometry = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
                     const material = new THREE.MeshBasicMaterial({ color: getRandomColor() }); // Random color
                     const bar = new THREE.Mesh(geometry, material);
-                    bar.position.set(index * (barWidth + 0.2) - (values.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
+                    bar.position.set(index * (barWidth + 0.5) - (values.length / 2 * (barWidth + 0.5)), barHeight / 2, 0);
 
                     // Create a border highlight
                     const borderMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true });
@@ -211,20 +215,6 @@
                     text.setAttribute('align', 'center');
                     text.setAttribute('color', '#000000'); // Black text for visibility
                     chartEntity.appendChild(text);
-                });
-            } else if (type === 'scatter') {
-                values.forEach((value, index) => {
-                    const geometry = new THREE.SphereGeometry(0.1);
-                    const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-                    const point = new THREE.Mesh(geometry, material);
-                    point.position.set(index * 0.5, value / 100 * maxHeight, 0);
-
-                    const meshEntity = new AFRAME.THREE.Object3D();
-                    meshEntity.add(point);
-
-                    const wrapperEntity = document.createElement('a-entity');
-                    wrapperEntity.setObject3D('mesh', meshEntity);
-                    chartEntity.appendChild(wrapperEntity);
                 });
             }
         }
@@ -329,6 +319,7 @@
         <a-camera id="camera" position="0 1.6 5" look-controls="pointerLockEnabled: true"></a-camera>
         <a-light type="ambient" color="#ffffff"></a-light>
         <a-light type="directional" position="2 4 3" target="#chart"></a-light>
+        <a-plane rotation="-90 0 0" width="50" height="50" color="#cccccc" position="0 0 -10"></a-plane>
         <a-entity id="chart" position="0 0 -5" rotation-controls="enabled: true; rotationSpeed: 0.5"></a-entity>
     </a-scene>
 </body>
