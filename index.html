@@ -53,76 +53,20 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            padding: 15px;
+            padding: 10px;
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            font-size: 14px;
+            font-size: 16px;
             color: #333;
             z-index: 1;
-            width: 200px;
         }
         .slider-container label {
             display: block;
             margin-bottom: 5px;
-            font-weight: bold;
         }
         .slider-container input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
             width: 100%;
-            height: 6px;
-            border-radius: 5px;
-            background: #ddd;
-            outline: none;
-            cursor: pointer;
-            margin: 10px 0;
-        }
-        .slider-container input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #007bff;
-            cursor: pointer;
-            box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-        }
-        .slider-container input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #007bff;
-            cursor: pointer;
-            box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-        }
-        .slider-container input[type="range"]::-ms-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #007bff;
-            cursor: pointer;
-            box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-        }
-        .slider-container input[type="range"]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 6px;
-            border-radius: 5px;
-            background: #ddd;
-        }
-        .slider-container input[type="range"]::-moz-range-track {
-            width: 100%;
-            height: 6px;
-            border-radius: 5px;
-            background: #ddd;
-        }
-        .slider-container input[type="range"]::-ms-track {
-            width: 100%;
-            height: 6px;
-            border-radius: 5px;
-            background: transparent;
-            border-color: transparent;
-            color: transparent;
         }
         .data-display {
             position: absolute;
@@ -134,7 +78,7 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             font-size: 16px;
             color: #333;
-            max-width: 300px;
+            max-width: 400px;
             overflow: auto;
             z-index: 1;
         }
@@ -165,44 +109,47 @@
         window.onload = function() {
             alert("Most Optimal When used on a Mobile Device");
         };
-    </script>
-</head>
-<body>
-    <div class="info-panel">
-        <h1>AR Data Visualization</h1>
-        <p>This visualization displays data in an augmented reality environment.</p>
-        <button onclick="fetchData(spreadsheetId)">Refresh Data</button>
-    </div>
-    <div class="slider-container">
-        <label for="zoom-slider">Zoom Level</label>
-        <input type="range" id="zoom-slider" min="1" max="10" step="0.1" value="5">
-        <label for="rotation-slider">Rotation</label>
-        <input type="range" id="rotation-slider" min="0" max="360" step="1" value="0">
-    </div>
-    <div class="data-display">
-        <h2>Spreadsheet Data</h2>
-        <table id="data-table">
-            <thead>
-                <tr>
-                    <th>Category</th>
-                    <th>Value</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Data rows will be inserted here -->
-            </tbody>
-        </table>
-    </div>
-    <a-scene>
-        <a-camera id="camera" position="0 1.6 5" look-controls="pointerLockEnabled: true"></a-camera>
-        <a-light type="ambient" color="#ffffff"></a-light>
-        <a-light type="directional" position="2 4 3" target="#chart"></a-light>
-        <a-entity id="chart" position="0 0 -5" rotation-controls="enabled: true; rotationSpeed: 0.5"></a-entity>
-    </a-scene>
-    <script>
-        const barWidth = 0.5;
-        const barDepth = 0.5;
-        const maxHeight = 5;
+
+        async function fetchData(spreadsheetId) {
+            try {
+                const response = await fetch(`https://www.ethercalc.net/_/${spreadsheetId}/csv.json`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                console.log('Fetched data:', data);
+
+                // Assuming the data format is [[names], [values]]
+                const names = data[0];
+                const values = data[1].map(value => parseFloat(value)).filter(value => !isNaN(value));
+
+                // Update the table with fetched data
+                updateTable(names, values);
+
+                // Example usage: Update the chart to display a bar chart
+                updateChart([names, values], 'bar');
+            } catch (error) {
+                console.error('Failed to fetch data:', error);
+            }
+        }
+
+        function updateTable(names, values) {
+            const tableBody = document.querySelector('#data-table tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            names.forEach((name, index) => {
+                const row = document.createElement('tr');
+                const nameCell = document.createElement('td');
+                const valueCell = document.createElement('td');
+
+                nameCell.textContent = name || `Item ${index}`;
+                valueCell.textContent = values[index] || 'N/A';
+
+                row.appendChild(nameCell);
+                row.appendChild(valueCell);
+                tableBody.appendChild(row);
+            });
+        }
 
         function createChart(data, names, type = 'bar') {
             const chartEntity = document.querySelector('#chart');
@@ -221,28 +168,28 @@
                     bar.position.set(index * (barWidth + 0.2) - (data.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
 
                     // Create a border highlight
-                    const borderMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.5, transparent: true });
+                    const borderMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true });
                     const borderGeometry = new THREE.BoxGeometry(barWidth + 0.05, barHeight + 0.05, barDepth + 0.05);
                     const border = new THREE.Mesh(borderGeometry, borderMaterial);
                     border.position.copy(bar.position);
 
                     // Create the 3D effect
-                    const highlightMaterial1 = new THREE.MeshBasicMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 0.5 });
-                    const highlightMaterial2 = new THREE.MeshBasicMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 0.2 });
+                    const highlightMaterial1 = new THREE.MeshBasicMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 0.3 });
+                    const highlightMaterial2 = new THREE.MeshBasicMaterial({ color: 0x004d00, emissive: 0x004d00, emissiveIntensity: 0.3 });
+                    const highlightGeometry1 = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
+                    const highlightGeometry2 = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
 
-                    const highlightGeometry1 = new THREE.BoxGeometry(barWidth + 0.1, barHeight + 0.1, barDepth + 0.1);
                     const highlight1 = new THREE.Mesh(highlightGeometry1, highlightMaterial1);
-                    highlight1.position.copy(bar.position);
-
-                    const highlightGeometry2 = new THREE.BoxGeometry(barWidth + 0.2, barHeight + 0.2, barDepth + 0.2);
                     const highlight2 = new THREE.Mesh(highlightGeometry2, highlightMaterial2);
-                    highlight2.position.copy(bar.position);
+
+                    highlight1.position.set(bar.position.x, bar.position.y, bar.position.z + 0.01);
+                    highlight2.position.set(bar.position.x, bar.position.y, bar.position.z - 0.01);
 
                     const meshEntity = new AFRAME.THREE.Object3D();
-                    meshEntity.add(highlight1);
-                    meshEntity.add(highlight2);
                     meshEntity.add(bar);
                     meshEntity.add(border);
+                    meshEntity.add(highlight1);
+                    meshEntity.add(highlight2);
 
                     const wrapperEntity = document.createElement('a-entity');
                     wrapperEntity.setObject3D('mesh', meshEntity);
@@ -312,7 +259,7 @@
             } else {
                 const [names, values] = data;
                 createChart(values, names, type);
-                displayData(names, values);
+                updateTable(names, values); // Update the table with the new data
             }
         };
 
@@ -323,48 +270,12 @@
             } else {
                 const [names, values] = data;
                 createChart(values, names, type);
-                displayData(names, values);
-            }
-        }
-
-        async function fetchData(spreadsheetId) {
-            try {
-                const response = await fetch(`https://www.ethercalc.net/_/${spreadsheetId}/csv.json`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                console.log('Fetched data:', data);
-
-                // Assuming the data format is [[names], [values]]
-                const names = data[0];
-                const values = data[1].map(value => parseFloat(value)).filter(value => !isNaN(value));
-
-                // Example usage: Update the chart to display a bar chart
-                updateChart([names, values], 'bar');
-            } catch (error) {
-                console.error('Failed to fetch data:', error);
+                updateTable(names, values); // Update the table with the new data
             }
         }
 
         const spreadsheetId = 'qpmllytxss4g';
         fetchData(spreadsheetId);
-
-        function displayData(names, values) {
-            const tableBody = document.querySelector('#data-table tbody');
-            tableBody.innerHTML = '';
-
-            names.forEach((name, index) => {
-                const row = document.createElement('tr');
-                const cell1 = document.createElement('td');
-                cell1.textContent = name;
-                const cell2 = document.createElement('td');
-                cell2.textContent = values[index] || 'N/A';
-                row.appendChild(cell1);
-                row.appendChild(cell2);
-                tableBody.appendChild(row);
-            });
-        }
 
         // Add zoom functionality
         document.getElementById('zoom-slider').addEventListener('input', (event) => {
