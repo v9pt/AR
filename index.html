@@ -22,50 +22,51 @@
         const barDepth = 0.5;
         const maxHeight = 5;
 
-        function createChart(data, names, type = 'bar') {
-            const chartEntity = document.querySelector('#chart');
-            while (chartEntity.firstChild) {
-                chartEntity.removeChild(chartEntity.firstChild);
-            }
+       function createChart(data, names, type = 'bar') {
+    const chartEntity = document.querySelector('#chart');
+    while (chartEntity.firstChild) {
+        chartEntity.removeChild(chartEntity.firstChild);
+    }
 
-            if (type === 'bar') {
-                data.forEach((value, index) => {
-                    const barHeight = (value / 100) * maxHeight;
-                    const geometry = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
-                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                    const bar = new THREE.Mesh(geometry, material);
-                    bar.position.set(index * (barWidth + 0.2) - (data.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
+    if (type === 'bar') {
+        data.forEach((value, index) => {
+            const barHeight = (value / 100) * maxHeight;
+            const geometry = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
+            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            const bar = new THREE.Mesh(geometry, material);
+            bar.position.set(index * (barWidth + 0.2) - (data.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
 
-                    const meshEntity = new AFRAME.THREE.Object3D();
-                    meshEntity.add(bar);
+            const meshEntity = new AFRAME.THREE.Object3D();
+            meshEntity.add(bar);
 
-                    const wrapperEntity = document.createElement('a-entity');
-                    wrapperEntity.setObject3D('mesh', meshEntity);
-                    chartEntity.appendChild(wrapperEntity);
-                    
-                    // Add text label
-                    const text = document.createElement('a-text');
-                    text.setAttribute('value', names[index] || `Item ${index}`);
-                    text.setAttribute('position', `${bar.position.x} ${bar.position.y + barHeight / 2 + 0.5} ${bar.position.z}`);
-                    text.setAttribute('align', 'center');
-                    chartEntity.appendChild(text);
-                });
-            } else if (type === 'scatter') {
-                data.forEach((value, index) => {
-                    const geometry = new THREE.SphereGeometry(0.1);
-                    const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-                    const point = new THREE.Mesh(geometry, material);
-                    point.position.set(index * 0.5, value / 100 * maxHeight, 0);
+            const wrapperEntity = document.createElement('a-entity');
+            wrapperEntity.setObject3D('mesh', meshEntity);
+            chartEntity.appendChild(wrapperEntity);
+            
+            // Add text label
+            const text = document.createElement('a-text');
+            text.setAttribute('value', names[index] || `Item ${index}`);
+            text.setAttribute('position', `${bar.position.x} ${bar.position.y + barHeight / 2 + 0.5} ${bar.position.z}`);
+            text.setAttribute('align', 'center');
+            text.setAttribute('color', '#000000'); // Black text for visibility
+            chartEntity.appendChild(text);
+        });
+    } else if (type === 'scatter') {
+        data.forEach((value, index) => {
+            const geometry = new THREE.SphereGeometry(0.1);
+            const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+            const point = new THREE.Mesh(geometry, material);
+            point.position.set(index * 0.5, value / 100 * maxHeight, 0);
 
-                    const meshEntity = new AFRAME.THREE.Object3D();
-                    meshEntity.add(point);
+            const meshEntity = new AFRAME.THREE.Object3D();
+            meshEntity.add(point);
 
-                    const wrapperEntity = document.createElement('a-entity');
-                    wrapperEntity.setObject3D('mesh', meshEntity);
-                    chartEntity.appendChild(wrapperEntity);
-                });
-            }
-        }
+            const wrapperEntity = document.createElement('a-entity');
+            wrapperEntity.setObject3D('mesh', meshEntity);
+            chartEntity.appendChild(wrapperEntity);
+        });
+    }
+}
 
         function latLonToXYZ(lat, lon, radius) {
             const phi = (90 - lat) * (Math.PI / 180);
