@@ -49,11 +49,29 @@
         .info-panel button:hover {
             background-color: #0056b3;
         }
+        .slider-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 16px;
+            color: #333;
+            z-index: 1;
+        }
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .slider-container input[type="range"] {
+            width: 100%;
+        }
     </style>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script>
-        // Alert message when the page loads
         window.onload = function() {
             alert("Most Optimal When used on a Mobile Device");
         };
@@ -65,8 +83,12 @@
         <p>This visualization displays data in an augmented reality environment.</p>
         <button onclick="fetchData(spreadsheetId)">Refresh Data</button>
     </div>
+    <div class="slider-container">
+        <label for="zoom-slider">Zoom Level</label>
+        <input type="range" id="zoom-slider" min="1" max="10" step="0.1" value="5">
+    </div>
     <a-scene>
-        <a-camera position="0 1.6 5" look-controls="pointerLockEnabled: true"></a-camera>
+        <a-camera id="camera" position="0 1.6 5" look-controls="pointerLockEnabled: true"></a-camera>
         <a-light type="ambient" color="#ffffff"></a-light>
         <a-light type="directional" position="2 4 3" target="#chart"></a-light>
         <a-entity id="chart" position="0 0 -5"></a-entity>
@@ -219,6 +241,13 @@
 
         const spreadsheetId = 'qpmllytxss4g';
         fetchData(spreadsheetId);
+
+        // Add zoom functionality
+        document.getElementById('zoom-slider').addEventListener('input', (event) => {
+            const zoomLevel = event.target.value;
+            const camera = document.querySelector('#camera');
+            camera.setAttribute('position', `0 1.6 ${5 - zoomLevel}`);
+        });
     </script>
 </body>
 </html>
