@@ -121,7 +121,7 @@
             }
         }
 
-        async function fetchData(spreadsheetId) {
+      async function fetchData(spreadsheetId) {
     try {
         const response = await fetch(`https://www.ethercalc.net/_/${spreadsheetId}/csv.json`);
         if (!response.ok) {
@@ -130,9 +130,9 @@
         const data = await response.json();
         console.log('Fetched data:', data);
 
-        // Assuming first row is names and the rest are values
+        // Assuming the data format is [[names], [values]]
         const names = data[0];
-        const values = data.slice(1).flat().map(row => parseFloat(row)).filter(value => !isNaN(value));
+        const values = data[1].map(value => parseFloat(value)).filter(value => !isNaN(value));
 
         // Example usage: Update the chart to display a bar chart
         updateChart([names, values], 'bar');
