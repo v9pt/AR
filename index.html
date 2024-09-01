@@ -91,15 +91,12 @@
         <a-camera id="camera" position="0 1.6 5" look-controls="pointerLockEnabled: true"></a-camera>
         <a-light type="ambient" color="#ffffff"></a-light>
         <a-light type="directional" position="2 4 3" target="#chart"></a-light>
-        <a-entity id="chart" position="0 0 -5"></a-entity>
+        <a-entity id="chart" position="0 0 -5" rotation-controls="enabled: true; rotationSpeed: 0.5"></a-entity>
     </a-scene>
     <script>
         const barWidth = 0.5;
         const barDepth = 0.5;
         const maxHeight = 5;
-
-        let rotationAngle = 0;
-        const rotationSpeed = 0.01; // Adjust the speed of rotation here
 
         function createChart(data, names, type = 'bar') {
             const chartEntity = document.querySelector('#chart');
@@ -251,16 +248,6 @@
             const camera = document.querySelector('#camera');
             camera.setAttribute('position', `0 1.6 ${5 - zoomLevel}`);
         });
-
-        // Add rotation functionality
-        function animate() {
-            rotationAngle += rotationSpeed;
-            const chartEntity = document.querySelector('#chart');
-            chartEntity.setAttribute('rotation', `0 ${rotationAngle * (180 / Math.PI)} 0`);
-            requestAnimationFrame(animate);
-        }
-
-        animate();
     </script>
 </body>
 </html>
