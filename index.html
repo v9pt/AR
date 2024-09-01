@@ -278,7 +278,7 @@
         document.getElementById('zoom-slider').addEventListener('input', (event) => {
             const zoomLevel = event.target.value;
             const camera = document.querySelector('#camera');
-            camera.setAttribute('position', `0 1.6 ${5 - zoomLevel}`);
+            camera.setAttribute('position', `0 1.6 ${zoomLevel}`);
         });
 
         // Add rotation functionality
