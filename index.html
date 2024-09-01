@@ -52,6 +52,12 @@
     </style>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script>
+        // Alert message when the page loads
+        window.onload = function() {
+            alert("Most Optimal When used on a Mobile Device");
+        };
+    </script>
 </head>
 <body>
     <div class="info-panel">
@@ -79,22 +85,36 @@
             if (type === 'bar') {
                 data.forEach((value, index) => {
                     const barHeight = (value / 100) * maxHeight;
-                    
+
                     // Create the main bar
                     const geometry = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
                     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
                     const bar = new THREE.Mesh(geometry, material);
                     bar.position.set(index * (barWidth + 0.2) - (data.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
 
-                    // Create a border highlight for the bar
+                    // Create a border highlight
+                    const borderMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true });
                     const borderGeometry = new THREE.BoxGeometry(barWidth + 0.05, barHeight + 0.05, barDepth + 0.05);
-                    const borderMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide });
                     const border = new THREE.Mesh(borderGeometry, borderMaterial);
                     border.position.copy(bar.position);
+
+                    // Create the 3D effect
+                    const highlightMaterial1 = new THREE.MeshBasicMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 0.3 });
+                    const highlightMaterial2 = new THREE.MeshBasicMaterial({ color: 0x004d00, emissive: 0x004d00, emissiveIntensity: 0.3 });
+                    const highlightGeometry1 = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
+                    const highlightGeometry2 = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
+
+                    const highlight1 = new THREE.Mesh(highlightGeometry1, highlightMaterial1);
+                    const highlight2 = new THREE.Mesh(highlightGeometry2, highlightMaterial2);
+
+                    highlight1.position.set(bar.position.x, bar.position.y, bar.position.z + 0.01);
+                    highlight2.position.set(bar.position.x, bar.position.y, bar.position.z - 0.01);
 
                     const meshEntity = new AFRAME.THREE.Object3D();
                     meshEntity.add(bar);
                     meshEntity.add(border);
+                    meshEntity.add(highlight1);
+                    meshEntity.add(highlight2);
 
                     const wrapperEntity = document.createElement('a-entity');
                     wrapperEntity.setObject3D('mesh', meshEntity);
