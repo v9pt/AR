@@ -68,6 +68,40 @@
         .slider-container input[type="range"] {
             width: 100%;
         }
+        .data-display {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 16px;
+            color: #333;
+            max-width: 400px;
+            overflow: auto;
+            z-index: 1;
+        }
+        .data-display h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #333;
+        }
+        .data-display table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .data-display table, .data-display th, .data-display td {
+            border: 1px solid #ddd;
+        }
+        .data-display th, .data-display td {
+            padding: 8px;
+            text-align: left;
+        }
+        .data-display th {
+            background-color: #f4f4f4;
+        }
     </style>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
@@ -75,46 +109,72 @@
         window.onload = function() {
             alert("Most Optimal When used on a Mobile Device");
         };
-    </script>
-</head>
-<body>
-    <div class="info-panel">
-        <h1>AR Data Visualization</h1>
-        <p>This visualization displays data in an augmented reality environment.</p>
-        <button onclick="fetchData(spreadsheetId)">Refresh Data</button>
-    </div>
-    <div class="slider-container">
-        <label for="zoom-slider">Zoom Level</label>
-        <input type="range" id="zoom-slider" min="1" max="10" step="0.1" value="5">
-        <label for="rotation-slider">Rotation</label>
-        <input type="range" id="rotation-slider" min="0" max="360" step="1" value="0">
-    </div>
-    <a-scene>
-        <a-camera id="camera" position="0 1.6 5" look-controls="pointerLockEnabled: true"></a-camera>
-        <a-light type="ambient" color="#ffffff"></a-light>
-        <a-light type="directional" position="2 4 3" target="#chart"></a-light>
-        <a-entity id="chart" position="0 0 -5" rotation-controls="enabled: true; rotationSpeed: 0.5"></a-entity>
-    </a-scene>
-    <script>
-        const barWidth = 0.5;
-        const barDepth = 0.5;
-        const maxHeight = 5;
 
-        function createChart(data, names, type = 'bar') {
+        async function fetchData(spreadsheetId) {
+            try {
+                const response = await fetch(`https://www.ethercalc.net/_/${spreadsheetId}/csv.json`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                console.log('Fetched data:', data);
+
+                // Assuming the data format is [[names], [values]]
+                const names = data[0];
+                const values = data[1].map(value => parseFloat(value)).filter(value => !isNaN(value));
+
+                // Update the table with fetched data
+                updateTable(names, values);
+
+                // Example usage: Update the chart to display a bar chart with different colors
+                updateChart([names, values], 'bar');
+            } catch (error) {
+                console.error('Failed to fetch data:', error);
+            }
+        }
+
+        function updateTable(names, values) {
+            const tableBody = document.querySelector('#data-table tbody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            names.forEach((name, index) => {
+                const row = document.createElement('tr');
+                const nameCell = document.createElement('td');
+                const valueCell = document.createElement('td');
+
+                nameCell.textContent = name || `Item ${index}`;
+                valueCell.textContent = values[index] || 'N/A';
+
+                row.appendChild(nameCell);
+                row.appendChild(valueCell);
+                tableBody.appendChild(row);
+            });
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function createChart([names, values], type = 'bar') {
             const chartEntity = document.querySelector('#chart');
             while (chartEntity.firstChild) {
                 chartEntity.removeChild(chartEntity.firstChild);
             }
 
             if (type === 'bar') {
-                data.forEach((value, index) => {
+                values.forEach((value, index) => {
                     const barHeight = (value / 100) * maxHeight;
 
                     // Create the main bar
                     const geometry = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
-                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                    const material = new THREE.MeshBasicMaterial({ color: getRandomColor() }); // Random color
                     const bar = new THREE.Mesh(geometry, material);
-                    bar.position.set(index * (barWidth + 0.2) - (data.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
+                    bar.position.set(index * (barWidth + 0.2) - (values.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
 
                     // Create a border highlight
                     const borderMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true });
@@ -153,7 +213,7 @@
                     chartEntity.appendChild(text);
                 });
             } else if (type === 'scatter') {
-                data.forEach((value, index) => {
+                values.forEach((value, index) => {
                     const geometry = new THREE.SphereGeometry(0.1);
                     const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
                     const point = new THREE.Mesh(geometry, material);
@@ -207,7 +267,7 @@
                 createGlobeWithPoints(data);
             } else {
                 const [names, values] = data;
-                createChart(values, names, type);
+                createChart([names, values], type);
             }
         };
 
@@ -217,27 +277,7 @@
                 createGlobeWithPoints(data);
             } else {
                 const [names, values] = data;
-                createChart(values, names, type);
-            }
-        }
-
-        async function fetchData(spreadsheetId) {
-            try {
-                const response = await fetch(`https://www.ethercalc.net/_/${spreadsheetId}/csv.json`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                console.log('Fetched data:', data);
-
-                // Assuming the data format is [[names], [values]]
-                const names = data[0];
-                const values = data[1].map(value => parseFloat(value)).filter(value => !isNaN(value));
-
-                // Example usage: Update the chart to display a bar chart
-                updateChart([names, values], 'bar');
-            } catch (error) {
-                console.error('Failed to fetch data:', error);
+                createChart([names, values], type);
             }
         }
 
@@ -258,5 +298,38 @@
             chartEntity.setAttribute('rotation', `0 ${rotationAngle} 0`);
         });
     </script>
+</head>
+<body>
+    <div class="info-panel">
+        <h1>AR Data Visualization</h1>
+        <p>This visualization displays data in an augmented reality environment.</p>
+        <button onclick="fetchData(spreadsheetId)">Refresh Data</button>
+    </div>
+    <div class="slider-container">
+        <label for="zoom-slider">Zoom Level</label>
+        <input type="range" id="zoom-slider" min="1" max="10" step="0.1" value="5">
+        <label for="rotation-slider">Rotation</label>
+        <input type="range" id="rotation-slider" min="0" max="360" step="1" value="0">
+    </div>
+    <div class="data-display">
+        <h2>Spreadsheet Data</h2>
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data rows will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+    <a-scene>
+        <a-camera id="camera" position="0 1.6 5" look-controls="pointerLockEnabled: true"></a-camera>
+        <a-light type="ambient" color="#ffffff"></a-light>
+        <a-light type="directional" position="2 4 3" target="#chart"></a-light>
+        <a-entity id="chart" position="0 0 -5" rotation-controls="enabled: true; rotationSpeed: 0.5"></a-entity>
+    </a-scene>
 </body>
 </html>
