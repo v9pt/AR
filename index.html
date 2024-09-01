@@ -91,7 +91,7 @@
             });
         }
 
-        const socket = new WebSocket('ws://yourserver.com/collaborate');
+        const socket = new WebSocket('ws://localhost:8080/');
         socket.onmessage = (event) => {
             const { data, type } = JSON.parse(event.data);
             if (type === 'globe') {
