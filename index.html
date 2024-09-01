@@ -23,42 +23,46 @@
         const maxHeight = 5;
         
         function createChart(data, type = 'bar') {
-            const chartEntity = document.querySelector('#chart');
-            while (chartEntity.firstChild) {
-                chartEntity.removeChild(chartEntity.firstChild);
-            }
+    const chartEntity = document.querySelector('#chart');
+    while (chartEntity.firstChild) {
+        chartEntity.removeChild(chartEntity.firstChild);
+    }
 
-            if (type === 'bar') {
-                data.forEach((value, index) => {
-                    const barHeight = (value / 100) * maxHeight;
-                    const geometry = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
-                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                    const bar = new THREE.Mesh(geometry, material);
-                    bar.position.set(index * (barWidth + 0.2) - (data.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
+    if (type === 'bar') {
+        data.forEach((value, index) => {
+            const barHeight = (value / 100) * maxHeight;
+            const geometry = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
+            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            const bar = new THREE.Mesh(geometry, material);
 
-                    const meshEntity = new AFRAME.THREE.Object3D();
-                    meshEntity.add(bar);
+            // Set position to be 3D, spreading bars along both X and Z axes
+            const xOffset = index % Math.sqrt(data.length);
+            const zOffset = Math.floor(index / Math.sqrt(data.length));
+            bar.position.set(xOffset * (barWidth + 0.2) - ((Math.sqrt(data.length) / 2) * (barWidth + 0.2)), barHeight / 2, zOffset * (barDepth + 0.2) - ((Math.sqrt(data.length) / 2) * (barDepth + 0.2)));
 
-                    const wrapperEntity = document.createElement('a-entity');
-                    wrapperEntity.setObject3D('mesh', meshEntity);
-                    chartEntity.appendChild(wrapperEntity);
-                });
-            } else if (type === 'scatter') {
-                data.forEach((value, index) => {
-                    const geometry = new THREE.SphereGeometry(0.1);
-                    const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-                    const point = new THREE.Mesh(geometry, material);
-                    point.position.set(index * 0.5, value / 100 * maxHeight, 0);
+            const meshEntity = new AFRAME.THREE.Object3D();
+            meshEntity.add(bar);
 
-                    const meshEntity = new AFRAME.THREE.Object3D();
-                    meshEntity.add(point);
+            const wrapperEntity = document.createElement('a-entity');
+            wrapperEntity.setObject3D('mesh', meshEntity);
+            chartEntity.appendChild(wrapperEntity);
+        });
+    } else if (type === 'scatter') {
+        data.forEach((value, index) => {
+            const geometry = new THREE.SphereGeometry(0.1);
+            const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+            const point = new THREE.Mesh(geometry, material);
+            point.position.set(index * 0.5, value / 100 * maxHeight, 0);
 
-                    const wrapperEntity = document.createElement('a-entity');
-                    wrapperEntity.setObject3D('mesh', meshEntity);
-                    chartEntity.appendChild(wrapperEntity);
-                });
-            }
-        }
+            const meshEntity = new AFRAME.THREE.Object3D();
+            meshEntity.add(point);
+
+            const wrapperEntity = document.createElement('a-entity');
+            wrapperEntity.setObject3D('mesh', meshEntity);
+            chartEntity.appendChild(wrapperEntity);
+        });
+    }
+}
 
         function latLonToXYZ(lat, lon, radius) {
             const phi = (90 - lat) * (Math.PI / 180);
