@@ -123,6 +123,40 @@
             border-color: transparent;
             color: transparent;
         }
+        .data-display {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 16px;
+            color: #333;
+            max-width: 300px;
+            overflow: auto;
+            z-index: 1;
+        }
+        .data-display h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #333;
+        }
+        .data-display table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .data-display table, .data-display th, .data-display td {
+            border: 1px solid #ddd;
+        }
+        .data-display th, .data-display td {
+            padding: 8px;
+            text-align: left;
+        }
+        .data-display th {
+            background-color: #f4f4f4;
+        }
     </style>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
@@ -143,6 +177,20 @@
         <input type="range" id="zoom-slider" min="1" max="10" step="0.1" value="5">
         <label for="rotation-slider">Rotation</label>
         <input type="range" id="rotation-slider" min="0" max="360" step="1" value="0">
+    </div>
+    <div class="data-display">
+        <h2>Spreadsheet Data</h2>
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data rows will be inserted here -->
+            </tbody>
+        </table>
     </div>
     <a-scene>
         <a-camera id="camera" position="0 1.6 5" look-controls="pointerLockEnabled: true"></a-camera>
@@ -179,21 +227,21 @@
 
                     // Create the 3D effect
                     const highlightMaterial1 = new THREE.MeshBasicMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 0.3 });
-                    const highlightMaterial2 = new THREE.MeshBasicMaterial({ color: 0x004d00, emissive: 0x004d00, emissiveIntensity: 0.3 });
-                    const highlightGeometry1 = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
-                    const highlightGeometry2 = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
+                    const highlightMaterial2 = new THREE.MeshBasicMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 0.2 });
 
+                    const highlightGeometry1 = new THREE.BoxGeometry(barWidth + 0.1, barHeight + 0.1, barDepth + 0.1);
                     const highlight1 = new THREE.Mesh(highlightGeometry1, highlightMaterial1);
-                    const highlight2 = new THREE.Mesh(highlightGeometry2, highlightMaterial2);
+                    highlight1.position.copy(bar.position);
 
-                    highlight1.position.set(bar.position.x, bar.position.y, bar.position.z + 0.01);
-                    highlight2.position.set(bar.position.x, bar.position.y, bar.position.z - 0.01);
+                    const highlightGeometry2 = new THREE.BoxGeometry(barWidth + 0.2, barHeight + 0.2, barDepth + 0.2);
+                    const highlight2 = new THREE.Mesh(highlightGeometry2, highlightMaterial2);
+                    highlight2.position.copy(bar.position);
 
                     const meshEntity = new AFRAME.THREE.Object3D();
-                    meshEntity.add(bar);
-                    meshEntity.add(border);
                     meshEntity.add(highlight1);
                     meshEntity.add(highlight2);
+                    meshEntity.add(bar);
+                    meshEntity.add(border);
 
                     const wrapperEntity = document.createElement('a-entity');
                     wrapperEntity.setObject3D('mesh', meshEntity);
@@ -263,6 +311,7 @@
             } else {
                 const [names, values] = data;
                 createChart(values, names, type);
+                displayData(names, values);
             }
         };
 
@@ -273,6 +322,7 @@
             } else {
                 const [names, values] = data;
                 createChart(values, names, type);
+                displayData(names, values);
             }
         }
 
@@ -298,6 +348,22 @@
 
         const spreadsheetId = 'qpmllytxss4g';
         fetchData(spreadsheetId);
+
+        function displayData(names, values) {
+            const tableBody = document.querySelector('#data-table tbody');
+            tableBody.innerHTML = '';
+
+            names.forEach((name, index) => {
+                const row = document.createElement('tr');
+                const cell1 = document.createElement('td');
+                cell1.textContent = name;
+                const cell2 = document.createElement('td');
+                cell2.textContent = values[index] || 'N/A';
+                row.appendChild(cell1);
+                row.appendChild(cell2);
+                tableBody.appendChild(row);
+            });
+        }
 
         // Add zoom functionality
         document.getElementById('zoom-slider').addEventListener('input', (event) => {
