@@ -136,21 +136,21 @@
         const barDepth = 0.5;
         const maxHeight = 5;
 
-        function createChart(data, names, type = 'bar') {
+        function createChart(values, names, type = 'bar') {
             const chartEntity = document.querySelector('#chart');
             while (chartEntity.firstChild) {
                 chartEntity.removeChild(chartEntity.firstChild);
             }
 
             if (type === 'bar') {
-                data.forEach((value, index) => {
+                values.forEach((value, index) => {
                     const barHeight = (value / 100) * maxHeight;
 
                     // Create the main bar
                     const geometry = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
                     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
                     const bar = new THREE.Mesh(geometry, material);
-                    bar.position.set(index * (barWidth + 0.2) - (data.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
+                    bar.position.set(index * (barWidth + 0.2) - (values.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
 
                     // Create a border highlight
                     const borderMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true });
@@ -189,7 +189,7 @@
                     chartEntity.appendChild(text);
                 });
             } else if (type === 'scatter') {
-                data.forEach((value, index) => {
+                values.forEach((value, index) => {
                     const geometry = new THREE.SphereGeometry(0.1);
                     const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
                     const point = new THREE.Mesh(geometry, material);
@@ -209,90 +209,55 @@
             const phi = (90 - lat) * (Math.PI / 180);
             const theta = (lon + 180) * (Math.PI / 180);
 
-            return {
-                x: -(radius * Math.sin(phi) * Math.cos(theta)),
-                y: radius * Math.cos(phi),
-                z: radius * Math.sin(phi) * Math.sin(theta)
-            };
+            const x = -radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.cos(phi);
+            const z = radius * Math.sin(phi) * Math.sin(theta);
+
+            return { x, y, z };
         }
 
-        function createGlobeWithPoints(data) {
-            const chartEntity = document.querySelector('#chart');
-            const globe = new THREE.Mesh(
-                new THREE.SphereGeometry(5, 32, 32),
-                new THREE.MeshBasicMaterial({ color: 0x0000ff, wireframe: true })
-            );
-            globe.position.set(0, 0, -10);
-            chartEntity.setObject3D('globe', globe);
+        function fetchData(spreadsheetId) {
+            fetch(`https://www.ethercalc.net/_/${spreadsheetId}/csv.json`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Fetched data:', data);
+                    
+                    if (Array.isArray(data) && data.length === 2) {
+                        const names = data[0];
+                        const values = data[1].map(value => parseFloat(value)).filter(value => !isNaN(value));
 
-            data.forEach(([lat, lon, value]) => {
-                const point = new THREE.Mesh(
-                    new THREE.SphereGeometry(0.1),
-                    new THREE.MeshBasicMaterial({ color: 0xff0000 })
-                );
-                const position = latLonToXYZ(lat, lon, 5);
-                point.position.set(position.x, position.y, position.z);
-                globe.add(point);
-            });
+                        console.log('Names:', names);
+                        console.log('Values:', values);
+
+                        updateChart([names, values], 'bar');
+                    } else {
+                        console.error('Unexpected data format:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to fetch data:', error);
+                });
         }
-
-        const socket = new WebSocket('ws://localhost:8080/');
-        socket.onmessage = (event) => {
-            const { data, type } = JSON.parse(event.data);
-            if (type === 'globe') {
-                createGlobeWithPoints(data);
-            } else {
-                const [names, values] = data;
-                createChart(values, names, type);
-            }
-        };
 
         function updateChart(data, type) {
-            socket.send(JSON.stringify({ data, type }));
-            if (type === 'globe') {
-                createGlobeWithPoints(data);
-            } else {
-                const [names, values] = data;
-                createChart(values, names, type);
-            }
+            createChart(data[1], data[0], type);
         }
 
-        async function fetchData(spreadsheetId) {
-            try {
-                const response = await fetch(`https://www.ethercalc.net/_/${spreadsheetId}/csv.json`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                console.log('Fetched data:', data);
-
-                // Assuming the data format is [[names], [values]]
-                const names = data[0];
-                const values = data[1].map(value => parseFloat(value)).filter(value => !isNaN(value));
-
-                // Example usage: Update the chart to display a bar chart
-                updateChart([names, values], 'bar');
-            } catch (error) {
-                console.error('Failed to fetch data:', error);
-            }
-        }
-
-        const spreadsheetId = 'qpmllytxss4g';
-        fetchData(spreadsheetId);
-
-        // Add zoom functionality
         document.getElementById('zoom-slider').addEventListener('input', (event) => {
             const zoomLevel = event.target.value;
-            const camera = document.querySelector('#camera');
+            const camera = document.querySelector('a-camera');
             camera.setAttribute('position', `0 1.6 ${5 - zoomLevel}`);
         });
 
-        // Add rotation functionality
         document.getElementById('rotation-slider').addEventListener('input', (event) => {
-            const rotationAngle = event.target.value;
-            const chartEntity = document.querySelector('#chart');
-            chartEntity.setAttribute('rotation', `0 ${rotationAngle} 0`);
+            const rotation = event.target.value;
+            const chart = document.querySelector('#chart');
+            chart.setAttribute('rotation', `0 ${rotation} 0`);
         });
+
+        // Initial setup
+        const spreadsheetId = 'qpmllytxss4g'; // Update this with your actual spreadsheet ID
+        fetchData(spreadsheetId);
     </script>
 </body>
 </html>
