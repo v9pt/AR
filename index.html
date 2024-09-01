@@ -68,9 +68,9 @@
         .slider-container input[type="range"] {
             width: 100%;
         }
-        .spreadsheet-container {
+        .data-display {
             position: absolute;
-            bottom: 10px;
+            bottom: 60px;
             left: 10px;
             padding: 15px;
             background-color: rgba(255, 255, 255, 0.9);
@@ -82,12 +82,25 @@
             max-width: 80%;
             overflow: auto;
         }
-        .spreadsheet-container iframe {
-            width: 100%;
-            height: 400px;
-            border: none;
+        .data-display h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
         }
-        .spreadsheet-container button {
+        .data-display table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .data-display th, .data-display td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        .data-display th {
+            background-color: #f4f4f4;
+        }
+        .data-display button {
             background-color: #28a745;
             color: #fff;
             border: none;
@@ -96,8 +109,10 @@
             cursor: pointer;
             font-size: 16px;
             margin-top: 10px;
+            display: block;
+            width: 100%;
         }
-        .spreadsheet-container button:hover {
+        .data-display button:hover {
             background-color: #218838;
         }
     </style>
@@ -241,6 +256,7 @@
                         console.log('Values:', values);
 
                         updateChart([names, values], 'bar');
+                        updateTable(names, values);
                     } else {
                         console.error('Unexpected data format:', data);
                     }
@@ -252,6 +268,24 @@
 
         function updateChart(data, type) {
             createChart(data[1], data[0], type);
+        }
+
+        function updateTable(names, values) {
+            const tableBody = document.querySelector('#data-table tbody');
+            tableBody.innerHTML = '';
+
+            names.forEach((name, index) => {
+                const row = document.createElement('tr');
+                const categoryCell = document.createElement('td');
+                const valueCell = document.createElement('td');
+
+                categoryCell.textContent = name;
+                valueCell.textContent = values[index] || 'N/A';
+
+                row.appendChild(categoryCell);
+                row.appendChild(valueCell);
+                tableBody.appendChild(row);
+            });
         }
 
         document.getElementById('zoom-slider').addEventListener('input', (event) => {
