@@ -79,18 +79,27 @@
             if (type === 'bar') {
                 data.forEach((value, index) => {
                     const barHeight = (value / 100) * maxHeight;
+                    
+                    // Create the main bar
                     const geometry = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
                     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
                     const bar = new THREE.Mesh(geometry, material);
                     bar.position.set(index * (barWidth + 0.2) - (data.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
 
+                    // Create a border highlight for the bar
+                    const borderGeometry = new THREE.BoxGeometry(barWidth + 0.05, barHeight + 0.05, barDepth + 0.05);
+                    const borderMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide });
+                    const border = new THREE.Mesh(borderGeometry, borderMaterial);
+                    border.position.copy(bar.position);
+
                     const meshEntity = new AFRAME.THREE.Object3D();
                     meshEntity.add(bar);
+                    meshEntity.add(border);
 
                     const wrapperEntity = document.createElement('a-entity');
                     wrapperEntity.setObject3D('mesh', meshEntity);
                     chartEntity.appendChild(wrapperEntity);
-                    
+
                     // Add text label
                     const text = document.createElement('a-text');
                     text.setAttribute('value', names[index] || `Item ${index}`);
