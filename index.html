@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -146,7 +147,6 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Data rows will be inserted here -->
             </tbody>
         </table>
         <button onclick="window.open('https://ethercalc.net/qpmllytxss4g', '_blank')">Edit Spreadsheet</button>
@@ -172,19 +172,16 @@
                 values.forEach((value, index) => {
                     const barHeight = (value / 100) * maxHeight;
 
-                    // Create the main bar
                     const geometry = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
                     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
                     const bar = new THREE.Mesh(geometry, material);
                     bar.position.set(index * (barWidth + 0.2) - (values.length / 2 * (barWidth + 0.2)), barHeight / 2, 0);
 
-                    // Create a border highlight
                     const borderMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true });
                     const borderGeometry = new THREE.BoxGeometry(barWidth + 0.05, barHeight + 0.05, barDepth + 0.05);
                     const border = new THREE.Mesh(borderGeometry, borderMaterial);
                     border.position.copy(bar.position);
 
-                    // Create the 3D effect
                     const highlightMaterial1 = new THREE.MeshBasicMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 0.3 });
                     const highlightMaterial2 = new THREE.MeshBasicMaterial({ color: 0x004d00, emissive: 0x004d00, emissiveIntensity: 0.3 });
                     const highlightGeometry1 = new THREE.BoxGeometry(barWidth, barHeight, barDepth);
@@ -206,12 +203,11 @@
                     wrapperEntity.setObject3D('mesh', meshEntity);
                     chartEntity.appendChild(wrapperEntity);
 
-                    // Add text label
                     const text = document.createElement('a-text');
                     text.setAttribute('value', names[index] || `Item ${index}`);
                     text.setAttribute('position', `${bar.position.x} ${bar.position.y + barHeight / 2 + 0.5} ${bar.position.z}`);
                     text.setAttribute('align', 'center');
-                    text.setAttribute('color', '#000000'); // Black text for visibility
+                    text.setAttribute('color', '#000000');
                     chartEntity.appendChild(text);
                 });
             } else if (type === 'scatter') {
@@ -221,7 +217,9 @@
                     const point = new THREE.Mesh(geometry, material);
                     point.position.set(index * 0.5, value / 100 * maxHeight, 0);
 
-                    const meshEntity = new AFRAME.THREE.Object3D();
+                    const meshEntity = new AFRAME.THREE
+
+.Object3D();
                     meshEntity.add(point);
 
                     const wrapperEntity = document.createElement('a-entity');
@@ -246,14 +244,9 @@
             fetch(`https://www.ethercalc.net/_/${spreadsheetId}/csv.json`)
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Fetched data:', data);
-                    
                     if (Array.isArray(data) && data.length === 2) {
                         const names = data[0];
                         const values = data[1].map(value => parseFloat(value)).filter(value => !isNaN(value));
-
-                        console.log('Names:', names);
-                        console.log('Values:', values);
 
                         updateChart([names, values], 'bar');
                         updateTable(names, values);
@@ -300,8 +293,7 @@
             chart.setAttribute('rotation', `0 ${rotation} 0`);
         });
 
-        // Initial setup
-        const spreadsheetId = 'qpmllytxss4g'; // Update this with your actual spreadsheet ID
+        const spreadsheetId = 'qpmllytxss4g';
         fetchData(spreadsheetId);
     </script>
 </body>
